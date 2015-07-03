@@ -61,11 +61,22 @@ public class Player extends Person {
 	private int speed, power, vision, health, name;
 	private boolean isMoving, isAttacking;
 	private int hasRadarBonus, hasSpeedUpBonus, hasStonedBonus, hasJumpBonus;
-	private Cell nextCell;
+	private Cell nextCell, startCell;
 	private ArrayList<Person> enemy;
 	private float startTimeForMoving, startTimeForAttacking;
 	private float startTimeForRadarBonus, startTimeForSpeedUpBonus,
-			startTimeForStonedBonus, startTimeForJumpBonus;
+			startTimeForStonedBonus, startTimeForJumpBonus, deathTime;
+	public boolean isHisTimeForRevive(){
+		if(Judge.getStaticTime() - deathTime>=30)
+			return true;
+		else
+			return false;
+	}
+	public void revive(){
+		health = 100;
+		this.setCell(startCell);
+		setAlive(true);
+	}
 
 	public int getName() {
 		return name;
@@ -109,6 +120,9 @@ public class Player extends Person {
 
 	public void setAlive(boolean isAlive) {
 		super.setAlive(isAlive);
+		if(isAlive==false){
+			deathTime=Judge.getStaticTime();
+		}
 		if (isAlive == false) { // kill all fans
 			ArrayList<Fan> allFans = this.getFans();
 			for (Fan tmp : allFans)
@@ -139,6 +153,7 @@ public class Player extends Person {
 		this.vision = vision;
 		this.name = name;
 		super.setCell(cell);
+		this.startCell = cell;
 	}
 
 	/**

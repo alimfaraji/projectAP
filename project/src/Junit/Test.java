@@ -33,25 +33,25 @@ public class Test {
 	int[][] wallsType = { { 9, 5, 5, 5, 3 }, { 8, 1, 1, 3, 10 },
 			{ 10, 8, 0, 2, 10 }, { 10, 12, 4, 6, 10 }, { 12, 5, 5, 5, 6 } };
 	
-	@org.junit.Test
-	public void getGiftTest(){
-		 ArrayList<GameObjectID> allPlayers = getPlayerGOI();
-		 GameObjectID saman = allPlayers.get(0);
-		 GameObjectID reza = allPlayers.get(1);
-		 Player samanPlayer = (Player)Person.getPersonFromGOI(saman);
-		 Player rezaPlayer = (Player)Person.getPersonFromGOI(reza);
-		 ArrayList<String> S;
-		 try{
-			 S =  judge.getVision(saman);
-			 for (int i = 0 ; i< S.size(); i ++ )
-				 System.out.println(S.get(i));
-		 }catch(BozorgExceptionBase e){
-			 
-		 }
-		 S = judge.getPlayersInVision(reza);
-		 for (int i = 0; i < S.size(); i ++)
-			 System.out.println(S.get(i));
-	}
+//	@org.junit.Test
+//	public void getGiftTest(){
+//		 ArrayList<GameObjectID> allPlayers = getPlayerGOI();
+//		 GameObjectID saman = allPlayers.get(0);
+//		 GameObjectID reza = allPlayers.get(1);
+//		 Player samanPlayer = (Player)Person.getPersonFromGOI(saman);
+//		 Player rezaPlayer = (Player)Person.getPersonFromGOI(reza);
+//		 ArrayList<String> S;
+//		 try{
+//			 S =  judge.getVision(saman);
+//			 for (int i = 0 ; i< S.size(); i ++ )
+//				 System.out.println(S.get(i));
+//		 }catch(BozorgExceptionBase e){
+//			 
+//		 }
+//		 S = judge.getPlayersInVision(reza);
+//		 for (int i = 0; i < S.size(); i ++)
+//			 System.out.println(S.get(i));
+//	}
 
 	// @org.junit.Test
 	// public void AttackTest() {

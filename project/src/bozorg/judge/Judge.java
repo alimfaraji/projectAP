@@ -24,6 +24,7 @@ import bozorg.common.exceptions.NoPersonToAttack;
 
 public class Judge extends JudgeAbstract {
 	private static float time = 0;
+	private Cell JJCell;
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -40,6 +41,8 @@ public class Judge extends JudgeAbstract {
 		for (int i = 0; i < cellsType.length; i++)
 			for (int j = 0; j < cellsType[0].length; j++) {
 				Cell cell = new Cell(cellsType[i][j], wallsType[i][j], i, j);
+				if (cellsType[i][j] == JJ_CELL)
+					JJCell = cell;
 			}
 
 		int k = 0;
@@ -133,7 +136,7 @@ public class Judge extends JudgeAbstract {
 		try {
 			player.move(direction);
 		} catch (HasStonedBonus e) {
-//			return;
+			// return;
 			throw e;
 		} catch (DirectionIsBlocked e) {
 			throw e;
@@ -196,41 +199,41 @@ public class Judge extends JudgeAbstract {
 		} catch (BozorgExceptionBase e) {
 			throw e;
 		}
-	}//speed o fan o hospital o check nashod
+	}// speed o fan o hospital o check nashod
 
 	// AI functions. these functions will never be used in judge
 	public void AIByStudents(GameObjectID player) {
-		
+
 		try {
 			ArrayList<String> cells = getVision(player);
-			int [] rows  = new int[cells.size()];
-			int [] cols  = new int[cells.size()];
-			int currentRow = 0, currentCol=0;
-			for(int i= 0;i<cells.size();i++){
+			int[] rows = new int[cells.size()];
+			int[] cols = new int[cells.size()];
+			int currentRow = 0, currentCol = 0;
+			for (int i = 0; i < cells.size(); i++) {
 				String[] tmp = cells.get(i).split(",");
 				rows[i] = Integer.parseInt(tmp[0]);
 				cols[i] = Integer.parseInt(tmp[1]);
 				currentRow += rows[i];
 				currentCol += cols[i];
-				
+
 			}
-			currentRow  = currentRow/cells.size();
-			currentCol = currentCol/cells.size();
-			for(int i= 0;i<cells.size();i++){
-				if(getMapCellType(cols[i], rows[i], player)==JJ_CELL){
-					if(currentCol > cols[i])
+			currentRow = currentRow / cells.size();
+			currentCol = currentCol / cells.size();
+			for (int i = 0; i < cells.size(); i++) {
+				if (getMapCellType(cols[i], rows[i], player) == JJ_CELL) {
+					if (currentCol > cols[i])
 						movePlayer(player, LEFT);
-					else if(currentCol < cols[i])
+					else if (currentCol < cols[i])
 						movePlayer(player, RIGHT);
-					else if(currentRow > rows[i])
+					else if (currentRow > rows[i])
 						movePlayer(player, UP);
-					else if(currentRow < rows[i])
+					else if (currentRow < rows[i])
 						movePlayer(player, DOWN);
 					return;
 				}
 			}
-			movePlayer(player, new Random().nextInt()%4);
-			
+			movePlayer(player, new Random().nextInt() % 4);
+
 		} catch (Exception e) {
 
 		}
@@ -308,7 +311,12 @@ public class Judge extends JudgeAbstract {
 
 	// Controller functions
 	public void next50milis() {
+		
+		if((time%10)>5){
+			JJCell.setType(NONE_CELL);
+		}//JJcell ba dore tanavobe 5 s Noncell ya jj cell khahad bood
 		time += +0.050f;
+		
 		checkForFinish();
 		checkCurrentOperations();
 	}
@@ -332,8 +340,10 @@ public class Judge extends JudgeAbstract {
 	private void checkCurrentOperations() {
 		ArrayList<Player> players = Player.getAllPlayers();
 		for (Player player : players) {
-			if (player.isAlive())
 				player.continueCurrentOperation();
+				if(player.isAlive()==false && player.isHisTimeForRevive())
+					player.revive();
+					
 		}
 	}
 
