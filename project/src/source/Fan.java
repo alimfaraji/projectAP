@@ -51,6 +51,7 @@ public class Fan extends Person{
 
 	public Fan(){
 		super();
+		allFans.add(this);
 		isFree = true;
 	}
 	
