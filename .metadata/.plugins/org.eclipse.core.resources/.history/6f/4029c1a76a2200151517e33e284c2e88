@@ -1,0 +1,15 @@
+package Network;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+
+public class Server {
+	public static int TIME_OUT = 10000;
+	private int port;
+	private ServerSocket serverSocket;
+
+	public Server(int port) throws IOException {
+		serverSocket = new ServerSocket(port);
+		serverSocket.setSoTimeout(TIME_OUT);
+	}
+}

@@ -1,0 +1,40 @@
+package Network;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+
+public class Server {
+	public static int TIME_OUT = 10000;
+	private int port;
+	private int numOfPlayers;
+	private ServerSocket serverSocket;
+
+	public Server(int port, int numOfPlayers) throws IOException {
+		// when the
+		// user of
+		// server PC
+		// click on a button which lead
+		// to network mode sth like
+		// joptionpane.inputDialoge ask
+		// for the number of players,
+		// then a new server will be
+		// created .don't know how we determine "port".
+
+		serverSocket = new ServerSocket(port);
+		serverSocket.setSoTimeout(TIME_OUT);
+		this.numOfPlayers = numOfPlayers;
+	}
+
+	public void run() {
+		try {
+			Socket server = serverSocket.accept();
+		} catch (SocketTimeoutException s) {
+			System.out.println("Socket timed out!");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}
