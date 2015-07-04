@@ -12,7 +12,7 @@ public class Server extends Thread {
 	private ServerSocket serverSocket;
 	private Socket[] socket;
 
-	public Server(int port, int numOfPlayers) throws IOException {
+	public Server(int numOfPlayers) throws IOException {
 		// when the
 		// user of
 		// server PC
@@ -23,7 +23,8 @@ public class Server extends Thread {
 		// then a new server will be
 		// created .don't know how we determine "port".
 
-		serverSocket = new ServerSocket(port);
+		serverSocket = new ServerSocket(0);
+		port = serverSocket.getLocalPort();
 		serverSocket.setSoTimeout(TIME_OUT);
 		this.numOfPlayers = numOfPlayers;
 		socket = new Socket[numOfPlayers];
