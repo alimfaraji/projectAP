@@ -1,13 +1,18 @@
 package source;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import bozorg.judge.JudgeAbstract;
 
-public class Fan extends Person{
+public class Fan extends Person implements Serializable{
 	//static
 	private static ArrayList<Fan> allFans = new ArrayList<Fan>();
+	
+	public static void setAllFans(ArrayList<Fan> tmp){
+		allFans = tmp;
+	}
 	
 	public static void add(Fan fan){
 		allFans.add(fan);

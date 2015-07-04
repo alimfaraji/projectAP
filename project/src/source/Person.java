@@ -1,14 +1,27 @@
 package source;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import bozorg.common.GameObjectID;
 
-public abstract class Person {
+public abstract class Person implements Serializable{
 	//static part
 	private static ArrayList<Person> allPerson = new ArrayList<Person>();
+	public static ArrayList<Person> getAllPerson() {
+		return allPerson;
+	}
+
 	private static ArrayList<GameObjectID> allGameObjectIDs = new ArrayList<GameObjectID>();
+	
+	public static void setAllPerson(ArrayList<Person> tmp){
+		allPerson = tmp;
+	}
+	
+	public static void setAllGameObjectIDs(ArrayList<GameObjectID> tmp){
+		allGameObjectIDs = tmp;
+	}
 	
 	public static ArrayList<GameObjectID> getAllGameObjectIDs(){
 		return allGameObjectIDs;

@@ -1,5 +1,6 @@
 package source;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import bozorg.common.GameObjectID;
@@ -16,10 +17,66 @@ import bozorg.common.exceptions.NoGiftToGet;
 import bozorg.common.exceptions.NoPersonToAttack;
 import bozorg.judge.JudgeAbstract;
 
-public class GameEngine {
+public class GameEngine implements Serializable{
 	private static float time = 0;
 	private Cell JJCell;
+	
+	//Person class
+	private ArrayList<Person> allPerson = null;
+	private ArrayList<GameObjectID> allGameObjectIDs = null;
 
+	//Player class
+	private ArrayList<Player> allPlayers = null;
+	private Player winner;
+	
+	//Fan class
+	private ArrayList<Fan> allFans = null;
+	
+	//Cell class
+	private Cell[][] allCells = null;
+	private static int numOfRows;
+	private static int numOfCols;
+	
+	public GameEngine(){
+		//Person class
+		this.allPerson = Person.getAllPerson();
+		this.allGameObjectIDs = Person.getAllGameObjectIDs();
+		
+		//Player class
+		this.allPlayers = Player.getAllPlayers();
+		this.winner = Player.getWinner();
+		
+		//Fan class
+		this.allFans = Fan.getAllFans();
+		
+		//Cell class
+		this.allCells = Cell.getAllCells();
+		this.numOfCols = Cell.getNumOfCols();
+		this.numOfRows = Cell.getNumOfRows();
+	}
+	
+	//TODO
+	/**
+	 * for network: every client invoke this method every x mls to update static parameters in 
+	 * other classes 
+	 */
+	public void updateStatics(){
+		//Person class
+		Person.setAllPerson(this.allPerson);
+		Person.setAllGameObjectIDs(this.allGameObjectIDs);
+		
+		//Player class
+		Player.setAllPlayers(this.allPlayers);
+		Player.setWinner(this.winner);
+		
+		//Fan class
+		Fan.setAllFans(this.allFans);
+		
+		//Cell class
+		Cell.setMapSize(numOfRows, numOfCols);
+		Cell.setAllCells(this.allCells);
+	}
+	
 	// map functions
 	/**
 	 * loads map for initializing

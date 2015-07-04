@@ -1,15 +1,24 @@
 package source;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import bozorg.judge.JudgeAbstract;
 
-public class Cell {
+public class Cell implements Serializable{
 	// Static Part
 	private static Cell[][] allCells = new Cell[110][110];
 	private static int numOfRows;
 	private static int numOfCols;
+	
+	public static Cell[][] getAllCells() {
+		return allCells;
+	}
+	
+	public static void setAllCells(Cell[][] tmp){
+		allCells = tmp;
+	}
 
 	public static int getNumOfRows() {
 		return numOfRows;

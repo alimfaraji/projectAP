@@ -1,5 +1,6 @@
 package source;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -13,7 +14,7 @@ import bozorg.common.exceptions.NoPersonToAttack;
 import bozorg.judge.Judge;
 import bozorg.judge.JudgeAbstract;
 
-public class Player extends Person {
+public class Player extends Person implements Serializable{
 	// static part
 	private static Player winner = null;
 	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
@@ -30,6 +31,10 @@ public class Player extends Person {
 			if (tmp.getName() == name)
 				return tmp;
 		return null;
+	}
+	
+	public static void setAllPlayers(ArrayList<Player> tmp){
+		allPlayers = tmp;
 	}
 
 	public static int numberOfAlivePlayers() {
