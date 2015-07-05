@@ -215,7 +215,7 @@ public class Player extends Person implements Serializable{
 	
 	/**
 	 * 
-	 * @return return -1 if it is not moving else a number between 0 and 1
+	 * @return return -1 if it is not moving
 	 */
 	public float movePercent(){
 		if(!this.isMoving)

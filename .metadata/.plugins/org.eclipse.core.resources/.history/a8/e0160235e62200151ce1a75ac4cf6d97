@@ -215,17 +215,13 @@ public class Player extends Person implements Serializable{
 	
 	/**
 	 * 
-	 * @return return -1 if it is not moving else a number between 0 and 1
+	 * @return return -1 if it is not moving
 	 */
-	public float movePercent(){
-		if(!this.isMoving)
+	public float dfsdf(){
+		if(this.isMoving)
 			return -1;
-		else{
-			if(speed * (Judge.getStaticTime() - startTimeForMoving)>=1)
-				return 1;
-			else
-				return speed * (Judge.getStaticTime() - startTimeForMoving);
-		}
+		else
+			return speed * (Judge.getStaticTime() - startTimeForMoving);
 			
 	}
 
