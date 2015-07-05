@@ -281,25 +281,6 @@ public class Player extends Person implements Serializable{
 		enemy = null;
 		isAttacking = false;
 	}
-	
-	
-	/**
-	 * 
-	 * @return return -1 if it is not attacking else a number between 0 and 1
-	 */
-	public float attackPercent(){
-		if(!this.isAttacking)
-			return -1;
-		else{
-			if(speed * (Judge.getStaticTime() - startTimeForAttacking)>=1)
-				return 1;
-			else
-				return speed * (Judge.getStaticTime() - startTimeForAttacking);
-		}
-			
-	}
-	
-	
 
 	/**
 	 * may return an empty arrayList
