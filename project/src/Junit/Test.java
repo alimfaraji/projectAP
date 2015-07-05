@@ -146,6 +146,13 @@ public class Test {
 		allGOI = Person.getAllGameObjectIDs();
 		// loaded
 	}
+	
+	@org.junit.Test
+	public void testGetAllPlayersInCell(){
+		Cell cellTmp = Cell.getCell(0, 4);
+		ArrayList<Player> playersInCell = cellTmp.getAllPlayers();
+		System.out.println(playersInCell.size());
+	}
 
 	// @org.junit.Test
 	// public void getCellTypeTest(){
