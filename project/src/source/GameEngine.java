@@ -179,7 +179,7 @@ public class GameEngine implements Serializable{
 	 * 
 	 * @param col
 	 * @param row
-	 * @param id
+	 * @param //id
 	 * @return
 	 */
 	public int getMapWallType(int col, int row, Player player) {
@@ -269,7 +269,7 @@ public class GameEngine implements Serializable{
 	/**
 	 * speed o fan o hospital are unchecked
 	 * 
-	 * @param id
+	 * @param //id
 	 * @throws BozorgExceptionBase
 	 */
 	public void getGift(Player player) throws BozorgExceptionBase,

@@ -21,7 +21,7 @@ public class Player extends Person implements Serializable{
 
 	/**
 	 * 
-	 * @param x
+	 * @param //x
 	 *            name of a player
 	 * @return a player with name "name"
 	 */
@@ -71,6 +71,16 @@ public class Player extends Person implements Serializable{
 	private float startTimeForMoving, startTimeForAttacking;
 	private float startTimeForRadarBonus, startTimeForSpeedUpBonus,
 			startTimeForStonedBonus, startTimeForJumpBonus, deathTime;
+	private int directionOfMove;
+	
+	public boolean isMoving(){
+		return isMoving;
+	}
+	
+	public int directionOfMove(){
+		return directionOfMove;
+	}
+	
 	public boolean isHisTimeForRevive(){
 		if(GameEngine.getStaticTime() - deathTime>=30)
 			return true;
@@ -202,6 +212,7 @@ public class Player extends Person implements Serializable{
 
 		this.nextCell = nextCell;
 		isMoving = true;
+		directionOfMove = dir;
 		startTimeForMoving = GameEngine.getStaticTime();
 	}
 

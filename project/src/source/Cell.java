@@ -30,7 +30,7 @@ public class Cell implements Serializable{
 
 	/**
 	 * 
-	 * @param current
+	 * @param //current
 	 *            cell
 	 * @param dir
 	 * @return null if such cell doesn't exist, cell
@@ -83,9 +83,12 @@ public class Cell implements Serializable{
 	 * @return cell , null if it doens't exist
 	 */
 	static public Cell getCell(int row, int col) {
-		if (row < 0 || col < 0 || row >= numOfRows || col >= numOfCols)
+
+        if (row < 0 || col < 0 || row >= numOfRows || col >= numOfCols)
 			return null;
+        //System.out.println("getCell");
 		return allCells[row][col];
+
 	}
 
 	// NonStatic Part
@@ -173,7 +176,7 @@ public class Cell implements Serializable{
 
 	/**
 	 * 
-	 * @param cell
+	 * @param //cell
 	 * @return player or fan, null if doesn't exist
 	 */
 	public Person getPerson() {

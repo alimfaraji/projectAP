@@ -122,7 +122,7 @@ public class Test {
 	ArrayList<GameObjectID> allGOI;
 
 	ArrayList<GameObjectID> getPlayerGOI() {
-		ArrayList<GameObjectID> ret = new ArrayList<>();
+		ArrayList<GameObjectID> ret = new ArrayList<GameObjectID>();
 		for (GameObjectID tmp : allGOI) {
 			if (Person.getPersonFromGOI(tmp) instanceof Player) {
 				ret.add(tmp);
@@ -132,7 +132,7 @@ public class Test {
 	}
 
 	ArrayList<GameObjectID> getFanGOI() {
-		ArrayList<GameObjectID> ret = new ArrayList<>();
+		ArrayList<GameObjectID> ret = new ArrayList<GameObjectID>();
 		for (GameObjectID tmp : allGOI)
 			if (Person.getPersonFromGOI(tmp) instanceof Fan)
 				ret.add(tmp);
@@ -145,13 +145,6 @@ public class Test {
 		judge.loadMap(cellsType, wallsType, players);
 		allGOI = Person.getAllGameObjectIDs();
 		// loaded
-	}
-	
-	@org.junit.Test
-	public void testGetAllPlayersInCell(){
-		Cell cellTmp = Cell.getCell(0, 4);
-		ArrayList<Player> playersInCell = cellTmp.getAllPlayers();
-		System.out.println(playersInCell.size());
 	}
 
 	// @org.junit.Test
