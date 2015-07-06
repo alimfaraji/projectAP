@@ -10,8 +10,10 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.HashMap;
 
 import source.GameEngine;
+import source.Player;
 
 public class Server extends Thread {
 	public static int TIME_OUT = 10000;
@@ -19,11 +21,12 @@ public class Server extends Thread {
 	private ServerSocket serverSocket;
 	private Socket[] socket;
 	private GameEngine engine;
-	
-	//output
+	private HashMap<Socket, Integer> players;
+
+	// output
 	private ObjectOutputStream[] out;
-	
-	//input
+
+	// input
 	private ObjectInputStream[] in;
 
 	public Server(int numOfPlayers, GameEngine engine) throws IOException {
@@ -47,8 +50,11 @@ public class Server extends Thread {
 		for (int i = 0; i < numOfPlayers; i++) {
 			try {
 				socket[i] = serverSocket.accept();
+				players.put(socket[i], i);
 				in[i] = new ObjectInputStream(socket[i].getInputStream());
 				out[i] = new ObjectOutputStream(socket[i].getOutputStream());
+				out[i].writeInt(i);// write on client the players name
+				out[i].flush();
 			} catch (SocketTimeoutException s) {
 				System.out.println("Socket timed out!");
 
@@ -56,18 +62,18 @@ public class Server extends Thread {
 				e.printStackTrace();
 			}
 		}
-		
-		//a thread for update gameEngine in clients
+
+		// a thread for update gameEngine in clients
 		new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
-				while(true){
-					for (int i = 0 ; i < numOfPlayers; i++ ){
-						try{
+				while (true) {
+					for (int i = 0; i < numOfPlayers; i++) {
+						try {
 							out[i].writeObject(engine);
-						}catch(IOException e){
-							//handle later
+						} catch (IOException e) {
+							// handle later
 						}
 					}
 				}
@@ -76,16 +82,42 @@ public class Server extends Thread {
 
 		// for each player, we set a thread to communicate with server
 		for (int i = 0; i < numOfPlayers; i++) {
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					while(true){
-						//communicate with client
-						//
-					}
-				}
-			}).start();
+			CommunicateClient th = new CommunicateClient(engine, players.get(socket[i]), in[i]);
+			th.start();
 		}
-		
+
+	}
+}
+
+class CommunicateClient extends Thread {
+	GameEngine engine;
+	int player;
+	ObjectInputStream in;
+
+	public CommunicateClient(GameEngine engine, int player, ObjectInputStream in) {
+		this.engine = engine;
+		this.player = player;
+		this.in = in;
+	}
+
+	public void run() {
+		// communicate with client
+		while (true) {
+			try {
+				int tmp = in.readInt();
+				switch (tmp) {
+				case Client.MOVE_DOWN:
+					// move down;
+					break;
+				case Client.MOVE_RIGHT:
+					// move right;
+					break;
+				// other cases
+					
+				}
+			} catch (IOException e) {
+				// handle exception
+			}
+		}
 	}
 }

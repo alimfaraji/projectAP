@@ -17,72 +17,71 @@ import bozorg.common.exceptions.NoGiftToGet;
 import bozorg.common.exceptions.NoPersonToAttack;
 import bozorg.judge.JudgeAbstract;
 
-public class GameEngine implements Serializable{
+public class GameEngine implements Serializable {
 	private static float time = 0;
 	private Cell JJCell;
-	
-	//Person class
+
+	// Person class
 	private ArrayList<Person> allPerson = null;
 	private ArrayList<GameObjectID> allGameObjectIDs = null;
 
-	//Player class
+	// Player class
 	private ArrayList<Player> allPlayers = null;
 	private Player winner;
-	
-	//Fan class
+
+	// Fan class
 	private ArrayList<Fan> allFans = null;
-	
-	//Cell class
+
+	// Cell class
 	private Cell[][] allCells = null;
-	private static int numOfRows;
-	private static int numOfCols;
-	
-	public GameEngine(){
-		//Person class
+	private int numOfRows;
+	private int numOfCols;
+
+	public GameEngine() {
+		// Person class
 		this.allPerson = Person.getAllPerson();
 		this.allGameObjectIDs = Person.getAllGameObjectIDs();
-		
-		//Player class
+
+		// Player class
 		this.allPlayers = Player.getAllPlayers();
 		this.winner = Player.getWinner();
-		
-		//Fan class
+
+		// Fan class
 		this.allFans = Fan.getAllFans();
-		
-		//Cell class
+
+		// Cell class
 		this.allCells = Cell.getAllCells();
 		this.numOfCols = Cell.getNumOfCols();
 		this.numOfRows = Cell.getNumOfRows();
 	}
-	
-	//TODO
+
+	// TODO
 	/**
-	 * for network: every client invoke this method every x mls to update static parameters in 
-	 * other classes 
+	 * for network: every client invoke this method every x mls to update static
+	 * parameters in other classes
 	 */
-	public void updateStatics(){
-		//Person class
+	public void updateStatics() {
+		// Person class
 		Person.setAllPerson(this.allPerson);
 		Person.setAllGameObjectIDs(this.allGameObjectIDs);
-		
-		//Player class
+
+		// Player class
 		Player.setAllPlayers(this.allPlayers);
 		Player.setWinner(this.winner);
-		
-		//Fan class
+
+		// Fan class
 		Fan.setAllFans(this.allFans);
-		
-		//Cell class
+
+		// Cell class
 		Cell.setMapSize(numOfRows, numOfCols);
 		Cell.setAllCells(this.allCells);
 	}
-	
+
 	// map functions
 	/**
 	 * loads map for initializing
 	 */
-	public ArrayList<GameObjectID> loadMap(int[][] cellsType,
-			int[][] wallsType, int[] players) {
+	public ArrayList<GameObjectID> loadMap(int[][] cellsType, int[][] wallsType, int[] players) {
 
 		Cell.setMapSize(cellsType.length, cellsType[0].length);
 
@@ -152,11 +151,8 @@ public class GameEngine implements Serializable{
 			return JudgeAbstract.DARK_CELL;
 
 		int tmp = Cell.getCell(row, col).getType();
-		if (tmp == JudgeAbstract.SPEEDUP_CELL
-				|| tmp == JudgeAbstract.RADAR_CELL
-				|| tmp == JudgeAbstract.STONE_CELL
-				|| tmp == JudgeAbstract.JUMP_CELL
-				|| tmp == JudgeAbstract.FAN_CELL
+		if (tmp == JudgeAbstract.SPEEDUP_CELL || tmp == JudgeAbstract.RADAR_CELL || tmp == JudgeAbstract.STONE_CELL
+				|| tmp == JudgeAbstract.JUMP_CELL || tmp == JudgeAbstract.FAN_CELL
 				|| tmp == JudgeAbstract.HOSPITAL_CELL)
 			return JudgeAbstract.BONUS_CELL;
 
@@ -197,8 +193,7 @@ public class GameEngine implements Serializable{
 
 	// logic functions
 	public void movePlayer(Player player, int direction)
-			throws BozorgExceptionBase, InvalidInteger, CallingDeadPerson,
-			DirectionIsBlocked, IncompleteOperation {
+			throws BozorgExceptionBase, InvalidInteger, CallingDeadPerson, DirectionIsBlocked, IncompleteOperation {
 		if (direction >= 5)
 			throw new InvalidInteger();
 
@@ -225,8 +220,7 @@ public class GameEngine implements Serializable{
 	 * @param direction
 	 * @throws BozorgExceptionBase
 	 */
-	public void attack(Player player, int direction)
-			throws BozorgExceptionBase, InvalidInteger, CallingDeadPerson,
+	public void attack(Player player, int direction) throws BozorgExceptionBase, InvalidInteger, CallingDeadPerson,
 			DirectionIsBlocked, IncompleteOperation, NoPersonToAttack {
 		if (direction >= 5)
 			throw new InvalidInteger();
@@ -254,8 +248,7 @@ public class GameEngine implements Serializable{
 	 * @throws BozorgExceptionBase
 	 *             ( NoFanToThrow ) if there's no fan to throw
 	 */
-	public Fan throwFan(Player player) throws BozorgExceptionBase,
-			CallingDeadPerson, NoFanToThrow {
+	public Fan throwFan(Player player) throws BozorgExceptionBase, CallingDeadPerson, NoFanToThrow {
 		if (!player.isAlive())
 			throw new CallingDeadPerson();
 
@@ -272,8 +265,8 @@ public class GameEngine implements Serializable{
 	 * @param //id
 	 * @throws BozorgExceptionBase
 	 */
-	public void getGift(Player player) throws BozorgExceptionBase,
-			CallingDeadPerson, MoreThanOnePlayerWantToGetAGift, NoGiftToGet {
+	public void getGift(Player player)
+			throws BozorgExceptionBase, CallingDeadPerson, MoreThanOnePlayerWantToGetAGift, NoGiftToGet {
 		if (!player.isAlive())
 			throw new CallingDeadPerson();
 		try {
@@ -286,16 +279,18 @@ public class GameEngine implements Serializable{
 	private void checkForFinish() {
 		ArrayList<Player> players = Player.getAllPlayers();
 		int numOfPlayersInJJ = 0;
-		for (Player tmp : players) {
-			if (tmp.getCell().getType() == JudgeAbstract.JJ_CELL)
-				numOfPlayersInJJ++;
-		}
-		if (numOfPlayersInJJ == 1) {
-			for (Player tmp : players) {
-				if (tmp.getCell().getType() == JudgeAbstract.JJ_CELL) {
-					Player.setWinner(tmp);
-				}
+		for (Player tmp : players)
+			if (tmp.isAlive()) {
+				if (tmp.getCell().getType() == JudgeAbstract.JJ_CELL)
+					numOfPlayersInJJ++;
 			}
+		if (numOfPlayersInJJ == 1) {
+			for (Player tmp : players)
+				if (tmp.isAlive()) {
+					if (tmp.getCell().getType() == JudgeAbstract.JJ_CELL) {
+						Player.setWinner(tmp);
+					}
+				}
 		}
 	}
 
@@ -304,7 +299,9 @@ public class GameEngine implements Serializable{
 
 		if ((time % 10) > 5) {
 			JJCell.setType(JudgeAbstract.NONE_CELL);
-		}// JJcell ba dore tanavobe 5 s Noncell ya jj cell khahad bood
+		} // JJcell ba dore tanavobe 5 s Noncell ya jj cell khahad bood
+		else
+			JJCell.setType(JudgeAbstract.JJ_CELL);
 		time += +0.050f;
 
 		checkForFinish();
@@ -338,19 +335,16 @@ public class GameEngine implements Serializable{
 	}
 
 	// Judge cheat functions
-	public void updateInfo(GameObjectID id, String infoKey, Integer infoValue)
-			throws BozorgExceptionBase {
+	public void updateInfo(GameObjectID id, String infoKey, Integer infoValue) throws BozorgExceptionBase {
 		if (!Person.isValidGOI(id))
 			throw new InvalidGOI();
 		Person person = Person.getPersonFromGOI(id);
 		if (person.getClass().equals(Player.getAllPlayers().get(0).getClass())) {
 			Player player = (Player) person;
 			if (infoKey == JudgeAbstract.ROW)
-				player.setCell(Cell.getCell(infoValue, player.getCell()
-						.getCol()));
+				player.setCell(Cell.getCell(infoValue, player.getCell().getCol()));
 			if (infoKey == JudgeAbstract.COL)
-				player.setCell(Cell.getCell(player.getCell().getRow(),
-						infoValue));
+				player.setCell(Cell.getCell(player.getCell().getRow(), infoValue));
 			if (infoKey == JudgeAbstract.SPEED)
 				player.setSpeed(infoValue);
 			if (infoKey == JudgeAbstract.NAME)

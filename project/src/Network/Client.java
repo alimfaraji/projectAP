@@ -15,8 +15,26 @@ import java.net.Socket;
 import source.GameEngine;
 
 public class Client extends Thread implements KeyListener {
-	private Socket socket;
-	private GameEngine engine;
+	public final static int MOVE_RIGHT = 0;
+	public final static int MOVE_UP = 1;
+	public final static int MOVE_LEFT = 2;
+	public final static int MOVE_DOWN = 3;
+	public final static int ATTACK_RIGHT = 4;
+	public final static int ATTACK_UP = 5;
+	public final static int ATTACK_LEFT = 6;
+	public final static int ATTACK_DOWN = 7;
+	public final static int GET_GIFT = 8;
+	public Socket socket;
+	public GameEngine engine;
+	public int player;
+
+	public int getPlayer() {
+		return player;
+	}
+
+	public void setPlayer(int player) {
+		player = player;
+	}
 
 	// output
 	private ObjectOutputStream out;
@@ -24,29 +42,32 @@ public class Client extends Thread implements KeyListener {
 	// input
 	private ObjectInputStream in;
 
-	public Client(InetAddress inetAddress, int port, GameEngine engine)
-			throws IOException {
+	public Client(InetAddress inetAddress, int port, GameEngine engine) throws IOException {
 		this.engine = engine;
 		socket = new Socket(inetAddress, port);
-
 		// input and output
 		out = new ObjectOutputStream(socket.getOutputStream());
 		in = new ObjectInputStream(socket.getInputStream());
+		try {
+			this.player = in.readInt();
+		} catch (IOException e) {
+			// handle it
+		}
 	}
 
 	public void run() {
-		
+
 		// upadte engie
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while(true){
-					try{
-						engine = (GameEngine)in.readObject();
-						//update engine in client 
+				while (true) {
+					try {
+						engine = (GameEngine) in.readObject();
+						// update engine in client
 						// it's not completed yet
-					}catch(Exception e){
-						//handle exception
+					} catch (Exception e) {
+						// handle exception
 					}
 				}
 			}
