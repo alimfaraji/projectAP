@@ -7,6 +7,7 @@ import bozorg.common.GameObjectID;
 import bozorg.common.exceptions.BozorgExceptionBase;
 import bozorg.common.exceptions.CallingDeadPerson;
 import bozorg.common.exceptions.DirectionIsBlocked;
+import bozorg.common.exceptions.GameIsPaused;
 import bozorg.common.exceptions.HasStonedBonus;
 import bozorg.common.exceptions.IncompleteOperation;
 import bozorg.common.exceptions.InvalidGOI;
@@ -36,8 +37,12 @@ public class GameEngine implements Serializable {
 	private Cell[][] allCells = null;
 	private int numOfRows;
 	private int numOfCols;
+	
+	private boolean paused;
+	private int playerWhoPaused;
 
 	public GameEngine() {
+		this.setPaused(false);
 		// Person class
 		this.allPerson = Person.getAllPerson();
 		this.allGameObjectIDs = Person.getAllGameObjectIDs();
@@ -193,7 +198,9 @@ public class GameEngine implements Serializable {
 
 	// logic functions
 	public void movePlayer(Player player, int direction)
-			throws BozorgExceptionBase, InvalidInteger, CallingDeadPerson, DirectionIsBlocked, IncompleteOperation {
+			throws GameIsPaused, BozorgExceptionBase, InvalidInteger, CallingDeadPerson, DirectionIsBlocked, IncompleteOperation {
+		if (isPaused())
+			throw new GameIsPaused();
 		if (direction >= 5)
 			throw new InvalidInteger();
 
@@ -220,8 +227,10 @@ public class GameEngine implements Serializable {
 	 * @param direction
 	 * @throws BozorgExceptionBase
 	 */
-	public void attack(Player player, int direction) throws BozorgExceptionBase, InvalidInteger, CallingDeadPerson,
+	public void attack(Player player, int direction) throws GameIsPaused, BozorgExceptionBase, InvalidInteger, CallingDeadPerson,
 			DirectionIsBlocked, IncompleteOperation, NoPersonToAttack {
+		if (isPaused())
+			throw new GameIsPaused();
 		if (direction >= 5)
 			throw new InvalidInteger();
 
@@ -248,7 +257,9 @@ public class GameEngine implements Serializable {
 	 * @throws BozorgExceptionBase
 	 *             ( NoFanToThrow ) if there's no fan to throw
 	 */
-	public Fan throwFan(Player player) throws BozorgExceptionBase, CallingDeadPerson, NoFanToThrow {
+	public Fan throwFan(Player player) throws GameIsPaused, BozorgExceptionBase, CallingDeadPerson, NoFanToThrow {
+		if (isPaused())
+			throw new GameIsPaused();
 		if (!player.isAlive())
 			throw new CallingDeadPerson();
 
@@ -266,7 +277,9 @@ public class GameEngine implements Serializable {
 	 * @throws BozorgExceptionBase
 	 */
 	public void getGift(Player player)
-			throws BozorgExceptionBase, CallingDeadPerson, MoreThanOnePlayerWantToGetAGift, NoGiftToGet {
+			throws GameIsPaused, BozorgExceptionBase, CallingDeadPerson, MoreThanOnePlayerWantToGetAGift, NoGiftToGet {
+		if (isPaused())
+			throw new GameIsPaused();
 		if (!player.isAlive())
 			throw new CallingDeadPerson();
 		try {
@@ -296,7 +309,8 @@ public class GameEngine implements Serializable {
 
 	// Controller functions
 	public void next50milis() {
-
+		if (isPaused())// game is paused so time stops
+			return;
 		if ((time % 10) > 5) {
 			JJCell.setType(JudgeAbstract.NONE_CELL);
 		} // JJcell ba dore tanavobe 5 s Noncell ya jj cell khahad bood
@@ -380,6 +394,40 @@ public class GameEngine implements Serializable {
 				fan.setOwner(Player.getPlayerFromNumber(infoValue));
 			if (infoKey == JudgeAbstract.IS_ALIVE)
 				fan.setAlive(infoValue == JudgeAbstract.ALIVE ? true : false);
+		}
+	}
+	
+	/**
+	 * may return null if such player doesn't exist
+	 * @param name
+	 * @return
+	 */
+	public Player getPlayerFromName(int name){
+		for (int i = 0; i < allPlayers.size(); i++ )
+			if (allPlayers.get(i).getName() == name)
+				return allPlayers.get(i);
+		return null;
+	}
+
+	public boolean isPaused() {
+		return paused;
+	}
+
+	public void setPaused(boolean paused) {
+		this.paused = paused;
+	}
+	
+	/**
+	 * just use in network mode??
+	 * @param paused
+	 * @param player
+	 */
+	public void setPaused(boolean paused, int player){
+		if (paused == false){
+			this.paused = true;
+			this.playerWhoPaused = player;
+		}else if (player == playerWhoPaused){
+			this.paused = false;
 		}
 	}
 }

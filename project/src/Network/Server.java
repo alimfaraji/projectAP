@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 
+import bozorg.judge.JudgeAbstract;
 import source.GameEngine;
 import source.Player;
 
@@ -107,10 +108,84 @@ class CommunicateClient extends Thread {
 				int tmp = in.readInt();
 				switch (tmp) {
 				case Client.MOVE_DOWN:
-					// move down;
+					try{
+						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.DOWN);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
 					break;
 				case Client.MOVE_RIGHT:
-					// move right;
+					try{
+						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.RIGHT);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.MOVE_LEFT:
+					try{
+						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.LEFT);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.MOVE_UP:
+					try{
+						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.UP);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.ATTACK_DOWN:
+					try{
+						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.DOWN);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.ATTACK_LEFT:
+					try{
+						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.LEFT);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.ATTACK_RIGHT:
+					try{
+						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.RIGHT);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.ATTACK_UP:
+					try{
+						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.UP);
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.GET_GIFT:
+					try{
+						engine.getGift(engine.getPlayerFromName(player));
+					}catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.PAUSE:
+					try{
+						if (engine.isPaused())
+							engine.setPaused(false, player);
+						else
+							engine.setPaused(true, player);
+					}catch(Exception e){
+						System.out.println(e.getMessage());
+					}
+					break;
+				case Client.THROW_FAN:
+					try{
+						engine.throwFan(engine.getPlayerFromName(player));
+					}catch(Exception e){
+						System.out.println(e.getMessage());
+					}
 					break;
 				// other cases
 					
