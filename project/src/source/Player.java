@@ -73,6 +73,10 @@ public class Player extends Person implements Serializable{
 			startTimeForStonedBonus, startTimeForJumpBonus, deathTime;
 	private int directionOfMove;
 	
+	public float getStartTimeForMoving(){
+		return startTimeForMoving;
+	}
+	
 	public boolean isMoving(){
 		return isMoving;
 	}

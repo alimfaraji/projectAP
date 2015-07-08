@@ -311,11 +311,11 @@ public class GameEngine implements Serializable {
 	public void next50milis() {
 		if (isPaused())// game is paused so time stops
 			return;
-		if ((time % 10) > 5) {
-			JJCell.setType(JudgeAbstract.NONE_CELL);
-		} // JJcell ba dore tanavobe 5 s Noncell ya jj cell khahad bood
-		else
-			JJCell.setType(JudgeAbstract.JJ_CELL);
+//		if ((time % 10) > 5) {
+//			JJCell.setType(JudgeAbstract.NONE_CELL);
+//		} // JJcell ba dore tanavobe 5 s Noncell ya jj cell khahad bood
+//		else
+//			JJCell.setType(JudgeAbstract.JJ_CELL);
 		time += +0.050f;
 
 		checkForFinish();

@@ -1,12 +1,17 @@
 package graphics;
 
 import bozorg.judge.Judge;
+import javafx.animation.PathTransition;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
+import javafx.util.Duration;
 import source.*;
 
 import java.sql.Time;
@@ -27,8 +32,8 @@ public class Draw {
     static int col=3;
     static double tool;
     static Image imagezamin;
-    static Image image1=new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png"));
-    static Image image2=new Image(new Draw().getClass().getResourceAsStream("c2-a1-r.png"));
+    static Image image1;
+    static Image image2;
     static Image image3;
     static Image image4;
 
@@ -108,9 +113,33 @@ public class Draw {
         // System.out.println(cell.getAllPlayers().size());
         if (cell.getAllPlayers().size() != 0 && cell.getAllPlayers() != null) {
 //System.out.println("salam");
+
+            player = cell.getAllPlayers().get(0);
+            if (player != null) {
+                if (player.getName()==Judge.SAMAN) {
+                    player = cell.getAllPlayers().get(0);
+                    image1 = new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png"));
+                    imageView1 = new ImageView(image1);
+                    imageView1.setY(player.getCell().getRow() * tool);
+                    imageView1.setX(player.getCell().getCol() * tool);
+                    imageView1.setFitWidth(tool / 2);
+                    imageView1.setFitHeight(tool / 2);
+                    group.getChildren().add(imageView1);
+                    //imageView1.setY(player.getCell().getRow()*tool);
+                    //imageView1.setFitHeight(tool/2);
+                    //imageView1.setFitWidth(tool/2);
+                    //group.getChildren().add(imageView1);
+                }
+            }
+
+
             player = cell.getAllPlayers().get(0);
             if (player.getName() == Judge.SAMAN) {
-                System.out.println("adam");
+                //attack1(group,true,x,y);
+                //System.out.println("okeyeokeye");
+                Draw.move1(group, player);
+                //attack1(group,true,x,y);
+                //System.out.println("adam");
 //                Image image1 = new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png"));
 //                ImageView imageView1 = new ImageView(image1);
 //                 imageView1=new ImageView(image1);
@@ -119,17 +148,17 @@ public class Draw {
 //                imageView1.setX(x);
 //                imageView1.setY(y);
 //                group.getChildren().add(imageView1);
-                attack1(group,true,x,y);
+                //   attack1(group,true,x,y);
             }
 
             if (player.getName() == 1) {
-               System.out.println("player2");
-                attack2(group, true, x, y);
+                System.out.println("player2");
+                //attack2(group, true, x, y);
             }
-            if(player.getName()==2)
-                attack3(group,true,x,y);
-            if(player.getName()==3)
-                attack4(group,true,x,y);
+            if (player.getName() == 2) ;
+            //attack3(group,true,x,y);
+            if (player.getName() == 3) ;
+            //attack4(group,true,x,y);
         }
 
 
@@ -154,31 +183,35 @@ public class Draw {
                     public void run() {
 
                         if((counter1%4)==0){
+                            double xx=imageView1.getX()-10;
+                            double yy=imageView1.getY()-10;
                             if(isright){
                                 image1=new Image(this.getClass().getResourceAsStream("c1-a1-r.png"));
                                 group.getChildren().remove(imageView1);
                                 imageView1=new ImageView(image1);
-                                group.getChildren().add(imageView1);
+
                                 counter1++;
                             }
                              else{
                                 image1=new Image(this.getClass().getResourceAsStream("c1-a1-l.png"));
                                 group.getChildren().remove(imageView1);
                                 imageView1=new ImageView(image1);
-                                group.getChildren().add(imageView1);
+
                                 counter1++;
                             }
                             imageView1.setFitHeight(tool / 2);
                             imageView1.setFitWidth(tool / 2);
-                            imageView1.setX(x);
-                            imageView1.setY(y);
+                            imageView1.setX(xx);
+                            imageView1.setY(yy);
+                            group.getChildren().add(imageView1);
                         }
                         else if((counter1%4)==1){
+                            double xx=imageView1.getX();
+                            double yy=imageView1.getY();
                             if(isright){
                                 image1=new Image(this.getClass().getResourceAsStream("c1-a2-r.png"));
                                 group.getChildren().remove(imageView1);
                                 imageView1=new ImageView(image1);
-                                group.getChildren().add(imageView1);
                                 counter1++;
                             }
                             else{
@@ -190,10 +223,13 @@ public class Draw {
                             }
                             imageView1.setFitHeight(tool / 2);
                             imageView1.setFitWidth(tool / 2);
-                            imageView1.setX(x+20);
-                            imageView1.setY(y);
+                            imageView1.setX(xx+20);
+                            imageView1.setY(yy);
                         }
                         else if((counter1%4)==2){
+                            double xx=imageView1.getX()-20;
+                            double yy=imageView1.getY();
+
                             if(isright){
                                 image1=new Image(this.getClass().getResourceAsStream("c1-a4-r.png"));
                                 group.getChildren().remove(imageView1);
@@ -210,10 +246,13 @@ public class Draw {
                             }
                             imageView1.setFitHeight(tool / 2);
                             imageView1.setFitWidth(tool / 2);
-                            imageView1.setX(x+10);
-                            imageView1.setY(y+10);
+                            imageView1.setX(xx+10);
+                            imageView1.setY(yy+10);
                         }
                         else if((counter1%4)==3){
+                            double xx=imageView1.getX()-10;
+                            double yy=imageView1.getY()-10;
+
                             if(isright){
                                 image1=new Image(this.getClass().getResourceAsStream("c1-a4-r.png"));
                                 group.getChildren().remove(imageView1);
@@ -231,15 +270,15 @@ public class Draw {
 
                             imageView1.setFitHeight(tool / 2);
                             imageView1.setFitWidth(tool / 2);
-                            imageView1.setX(x+10);
-                            imageView1.setY(y+10);
+                            imageView1.setX(xx+10);
+                            imageView1.setY(yy+10);
                         }
 
 
                     }
                 });
             }
-        },1000,300);
+        },10,300);
     return timer1;
     }
 
@@ -303,8 +342,6 @@ public class Draw {
         },1000,450);
         return timer2;
     }
-
-
 
 
 
@@ -441,10 +478,91 @@ public class Draw {
 
 
 
+public static void move1(Group group,Player player){
+ // System.out.println("open");
 
+//System.out.println(player.isMoving());
+    if(!player.isMoving()){
+        // System.out.println("hoora");
+       group.getChildren().remove(imageView1);
+        //image1=new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png"));
+        //imageView1=new ImageView(image1);
+       imageView1.setX(player.getCell().getCol()*tool);
+        imageView1.setY(player.getCell().getRow()*tool);
+        imageView1.setFitHeight(tool/2);
+        imageView1.setFitWidth(tool/2);
+       group.getChildren().add(imageView1);
+        //System.out.println("lllllllllllllllllllllllllllllllllllllllllll");
+    }
 
+    else if(player.directionOfMove()==3) {
+       //shah player.setSpeed(1);
+       // System.out.println("ooooooooooooooooooooooooooooooooooooooooooooooooo");
+        double xmabda = player.getCell().getCol() * tool;
+        double ymabda = player.getCell().getRow() * tool;
+       // System.out.println(">>>>>>>>>>>"+ player.isMoving() +"<<<<<<<<<<<<<<<<");
+        group.getChildren().remove(imageView1);
+       // imageView1 = new ImageView(new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png")));
+        imageView1.setX(xmabda - player.movePercent() * tool);
+        imageView1.setY(ymabda);
+        imageView1.setFitHeight(tool / 2);
+        imageView1.setFitWidth(tool / 2);
+        group.getChildren().add(imageView1);
+    }
+    else if(player.directionOfMove()==1) {
+
+        double xmabda = player.getCell().getCol() * tool;
+        double ymabda = player.getCell().getRow() * tool;
+
+        group.getChildren().remove(imageView1);
+       // imageView1 = new ImageView(new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png")));
+        imageView1.setX(xmabda + player.movePercent() * tool);
+        imageView1.setY(ymabda);
+        imageView1.setFitHeight(tool / 2);
+        imageView1.setFitWidth(tool / 2);
+        group.getChildren().add(imageView1);
+    }
+
+    else if(player.directionOfMove()==2) {
+
+        double xmabda = player.getCell().getCol() * tool;
+        double ymabda = player.getCell().getRow() * tool;
+
+        group.getChildren().remove(imageView1);
+        // imageView1 = new ImageView(new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png")));
+        imageView1.setY(ymabda + player.movePercent() * tool);
+        imageView1.setX(xmabda);
+        imageView1.setFitHeight(tool / 2);
+        imageView1.setFitWidth(tool / 2);
+        group.getChildren().add(imageView1);
+    }
+
+    else if(player.directionOfMove()==0) {
+
+        double xmabda = player.getCell().getCol() * tool;
+        double ymabda = player.getCell().getRow() * tool;
+
+        group.getChildren().remove(imageView1);
+        // imageView1 = new ImageView(new Image(new Draw().getClass().getResourceAsStream("c1-taajob.png")));
+        imageView1.setY(ymabda - player.movePercent() * tool);
+        imageView1.setX(xmabda);
+        imageView1.setFitHeight(tool / 2);
+        imageView1.setFitWidth(tool / 2);
+        group.getChildren().add(imageView1);
+    }
+
+    }
+
+    public void moveRight1(Group group,Player player){
+
+    }
 
 
 
 
 }
+
+
+
+
+
