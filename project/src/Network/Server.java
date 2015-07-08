@@ -14,8 +14,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 
+import bozorg.common.exceptions.NoSavedGameToLoad;
 import bozorg.judge.JudgeAbstract;
-import bozorg.judge.noSavedGameToLoad;
 import source.GameEngine;
 import source.Player;
 
@@ -57,7 +57,7 @@ public class Server extends Thread {
 	 * @throws noSavedGameToLoad
 	 *             if there's no saved game
 	 */
-	public void loadGame() throws noSavedGameToLoad {
+	public void loadGame() throws NoSavedGameToLoad{
 		try{
 			engine = (GameEngine)inputForSave.readObject();
 		}catch(Exception e){
