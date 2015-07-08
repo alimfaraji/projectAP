@@ -64,6 +64,16 @@ public class Server extends Thread {
 			//handle exception
 		}
 	}
+	
+//	public static void main(String[] args) throws IOException{
+//		Server server = new Server(2, new GameEngine());
+//		System.out.println("inetAdress: " + server.serverSocket.getInetAddress());
+//		System.out.println("port: " + server.serverSocket.getLocalPort());
+//		Client client = new Client(server.serverSocket.getInetAddress(), server.serverSocket.getLocalPort()
+//				, new GameEngine() );
+//		server.start();
+//		client.start();
+//	}
 
 	public Server(int numOfPlayers, GameEngine engine) throws IOException {
 		// when the

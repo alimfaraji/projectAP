@@ -50,6 +50,10 @@ public class Client extends Thread implements KeyListener {
 	// input
 	private ObjectInputStream in;
 
+//	public static void main(String[] args) {
+//		new Client(inetAddress, port, new GameEngine());
+//	}
+	
 	public Client(InetAddress inetAddress, int port, GameEngine engine) throws IOException {
 		this.engine = engine;
 		socket = new Socket(inetAddress, port);
