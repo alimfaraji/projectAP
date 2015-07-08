@@ -2,6 +2,8 @@ package Network;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -13,6 +15,7 @@ import java.net.SocketTimeoutException;
 import java.util.HashMap;
 
 import bozorg.judge.JudgeAbstract;
+import bozorg.judge.noSavedGameToLoad;
 import source.GameEngine;
 import source.Player;
 
@@ -24,11 +27,43 @@ public class Server extends Thread {
 	private GameEngine engine;
 	private HashMap<Socket, Integer> players;
 
-	// output
+	// output netWork
 	private ObjectOutputStream[] out;
 
-	// input
+	// input netWork
 	private ObjectInputStream[] in;
+
+	// input and output for save and load:
+	private ObjectOutputStream outputForSave = new ObjectOutputStream(new FileOutputStream("saved.txt"));
+	private ObjectInputStream inputForSave = new ObjectInputStream(new FileInputStream("saved.txt"));
+
+	/**
+	 * save game should be called in GamePanel of Server
+	 */
+	public void saveGame() {
+		try {
+			outputForSave.reset();
+			outputForSave.writeObject(engine);
+			outputForSave.flush();
+			//TODO no finished
+		} catch (IOException e) {
+			// handle exception
+		}
+	}
+
+	/**
+	 * load last saved game,
+	 * 
+	 * @throws noSavedGameToLoad
+	 *             if there's no saved game
+	 */
+	public void loadGame() throws noSavedGameToLoad {
+		try{
+			engine = (GameEngine)inputForSave.readObject();
+		}catch(Exception e){
+			//handle exception
+		}
+	}
 
 	public Server(int numOfPlayers, GameEngine engine) throws IOException {
 		// when the
@@ -105,90 +140,105 @@ class CommunicateClient extends Thread {
 		// communicate with client
 		while (true) {
 			try {
-				int tmp = in.readInt();
-				switch (tmp) {
-				case Client.MOVE_DOWN:
-					try{
-						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.DOWN);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
+				Object tmp1 = in.read();// TODO not sure about how it works
+				System.out.println("testing" + tmp1);
+				if (tmp1 instanceof String) {
+					System.out.println("tmp is a string");
+					// Print the message on screen
+				} else {
+					System.out.println("tmp is not a string");
+					int tmp = (Integer) tmp1;
+					switch (tmp) {
+					case Client.MOVE_DOWN:
+						try {
+							engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.DOWN);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.MOVE_RIGHT:
+						try {
+							engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.RIGHT);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.MOVE_LEFT:
+						try {
+							engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.LEFT);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.MOVE_UP:
+						try {
+							engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.UP);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.ATTACK_DOWN:
+						try {
+							engine.attack(engine.getPlayerFromName(player), JudgeAbstract.DOWN);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.ATTACK_LEFT:
+						try {
+							engine.attack(engine.getPlayerFromName(player), JudgeAbstract.LEFT);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.ATTACK_RIGHT:
+						try {
+							engine.attack(engine.getPlayerFromName(player), JudgeAbstract.RIGHT);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.ATTACK_UP:
+						try {
+							engine.attack(engine.getPlayerFromName(player), JudgeAbstract.UP);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.GET_GIFT:
+						try {
+							engine.getGift(engine.getPlayerFromName(player));
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.PAUSE:
+						try {
+							if (engine.isPaused())
+								engine.setPaused(false, player);
+							else
+								engine.setPaused(true, player);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.THROW_FAN:
+						try {
+							engine.throwFan(engine.getPlayerFromName(player));
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					case Client.ATTACK:
+						try {
+							engine.attack(engine.getPlayerFromName(player), JudgeAbstract.NONE);
+						} catch (Exception e) {
+							System.out.println(e.getMessage());
+						}
+						break;
+					// other cases
+
 					}
-					break;
-				case Client.MOVE_RIGHT:
-					try{
-						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.RIGHT);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.MOVE_LEFT:
-					try{
-						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.LEFT);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.MOVE_UP:
-					try{
-						engine.movePlayer(engine.getPlayerFromName(player), JudgeAbstract.UP);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.ATTACK_DOWN:
-					try{
-						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.DOWN);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.ATTACK_LEFT:
-					try{
-						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.LEFT);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.ATTACK_RIGHT:
-					try{
-						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.RIGHT);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.ATTACK_UP:
-					try{
-						engine.attack(engine.getPlayerFromName(player), JudgeAbstract.UP);
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.GET_GIFT:
-					try{
-						engine.getGift(engine.getPlayerFromName(player));
-					}catch (Exception e) {
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.PAUSE:
-					try{
-						if (engine.isPaused())
-							engine.setPaused(false, player);
-						else
-							engine.setPaused(true, player);
-					}catch(Exception e){
-						System.out.println(e.getMessage());
-					}
-					break;
-				case Client.THROW_FAN:
-					try{
-						engine.throwFan(engine.getPlayerFromName(player));
-					}catch(Exception e){
-						System.out.println(e.getMessage());
-					}
-					break;
-				// other cases
-					
 				}
 			} catch (IOException e) {
 				// handle exception

@@ -26,10 +26,16 @@ public class Client extends Thread implements KeyListener {
 	public final static int GET_GIFT = 8;
 	public final static int PAUSE = 9;
 	public final static int THROW_FAN = 10;
-	public Socket socket;
-	public GameEngine engine;
-	public int player;
+	public final static int ATTACK = 11;
+	private Socket socket;
+	private GameEngine engine;
+	private int player;
+	private String chatString;// should synch with gamePanel
 
+	public void setChatString(String s){
+		chatString = s;
+	}
+	
 	public int getPlayer() {
 		return player;
 	}
@@ -58,7 +64,6 @@ public class Client extends Thread implements KeyListener {
 	}
 
 	public void run() {
-
 		// upadte engie
 		new Thread(new Runnable() {
 			@Override
@@ -74,6 +79,20 @@ public class Client extends Thread implements KeyListener {
 				}
 			}
 		}).start();
+		
+		//for chat:
+		while (true){
+			if (chatString != null && chatString != "" ){
+				try{
+					out.reset();
+					out.writeUTF(chatString);
+					out.flush();
+					chatString = "";
+				}catch(IOException e){
+					//handle exception
+				}
+			}
+		}
 	}
 
 	@Override
@@ -131,6 +150,9 @@ public class Client extends Thread implements KeyListener {
 				out.writeInt(THROW_FAN);
 				out.flush();
 				break;
+			case KeyEvent.VK_SPACE:
+				out.writeInt(ATTACK);
+				out.flush();
 			}
 		} catch (IOException ex) {
 			// handle
