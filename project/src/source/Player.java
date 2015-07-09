@@ -65,7 +65,56 @@ public class Player extends Person implements Serializable{
 
 	private int speed, power, vision, health, name;
 	private boolean isMoving, isAttacking;
+	private ArrayList<Cell> lastCells = new ArrayList<>();
+	
+	/**
+	 * should be called in gamePanel
+	 */
+	public void updateCellsInVision(){
+		lastCells = this.getVisionArrayCells();
+	}
+	
+	public ArrayList<Cell> getNewDarkCells(){
+		ArrayList<Cell> ret = new ArrayList<>();
+		ArrayList<Cell> currentCells = this.getVisionArrayCells();
+		for (Cell tmp : lastCells){
+			if (!currentCells.contains(tmp))
+				ret.add(tmp);
+		}
+		return ret;
+	}
+	
+	public ArrayList<Cell> getNewNonDarkCells(){
+		ArrayList<Cell> ret = new ArrayList<>();
+		ArrayList<Cell> currentCells = this.getVisionArrayCells();
+		for (Cell tmp : currentCells){
+			if (!lastCells.contains(tmp))
+				ret.add(tmp);
+		}
+		return ret;
+	}
+	
+	public boolean isAttacking() {
+		return isAttacking;
+	}
+
 	private int hasRadarBonus, hasSpeedUpBonus, hasStonedBonus, hasJumpBonus;
+	public int getHasRadarBonus() {
+		return hasRadarBonus;
+	}
+
+	public int getHasSpeedUpBonus() {
+		return hasSpeedUpBonus;
+	}
+
+	public int getHasStonedBonus() {
+		return hasStonedBonus;
+	}
+
+	public int getHasJumpBonus() {
+		return hasJumpBonus;
+	}
+
 	private Cell nextCell, startCell;
 	private ArrayList<Person> enemy;
 	private float startTimeForMoving, startTimeForAttacking;

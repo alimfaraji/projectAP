@@ -54,17 +54,9 @@ public class Client extends Thread implements KeyListener {
 //		new Client(inetAddress, port, new GameEngine());
 //	}
 	
-	public Client(InetAddress inetAddress, int port, GameEngine engine) throws IOException {
+	public Client(String host, int port, GameEngine engine) throws IOException {
 		this.engine = engine;
-		socket = new Socket(inetAddress, port);
-		// input and output
-		out = new ObjectOutputStream(socket.getOutputStream());
-		in = new ObjectInputStream(socket.getInputStream());
-		try {
-			this.player = in.readInt();
-		} catch (IOException e) {
-			// handle it
-		}
+		socket = new Socket(host, port);
 	}
 
 	public void run() {
@@ -72,6 +64,14 @@ public class Client extends Thread implements KeyListener {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
+				try {
+					out = new ObjectOutputStream(socket.getOutputStream());
+					in = new ObjectInputStream(socket.getInputStream());
+					player = in.readInt();
+					System.out.println("player is : " + player);
+				} catch (IOException e) {
+					System.out.println("exception 1");
+				}
 				while (true) {
 					try {
 						engine = (GameEngine) in.readObject();

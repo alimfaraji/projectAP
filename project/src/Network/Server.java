@@ -85,11 +85,14 @@ public class Server extends Thread {
 		// for the number of players,
 		// then a new server will be
 		// created .
+		players = new HashMap<>();
 		this.engine = engine;
 		serverSocket = new ServerSocket(0);
 		serverSocket.setSoTimeout(TIME_OUT);
 		this.numOfPlayers = numOfPlayers;
 		socket = new Socket[numOfPlayers];
+		out = new ObjectOutputStream[numOfPlayers];
+		in = new ObjectInputStream[numOfPlayers];
 	}
 
 	public void run() {
@@ -117,7 +120,9 @@ public class Server extends Thread {
 				while (true) {
 					for (int i = 0; i < numOfPlayers; i++) {
 						try {
+							out[i].reset();
 							out[i].writeObject(engine);
+							out[i].flush();
 						} catch (IOException e) {
 							// handle later
 						}
