@@ -455,6 +455,7 @@ public class Player extends Person implements Serializable{
 		startTimeForSpeedUpBonus = GameEngine.getStaticTime();
 		hasSpeedUpBonus++;
 		this.speed *= 2;
+		this.power *=2;
 	}
 
 	public void startHavingJumpBonus() {
@@ -483,6 +484,7 @@ public class Player extends Person implements Serializable{
 	public void destroySpeedUpBonus() {
 		hasSpeedUpBonus--;
 		this.speed /= 2;
+		this.power/=2;
 	}
 
 	public void destroyJumpBonus() {

@@ -1,0 +1,482 @@
+package bozorg.judge;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.TreeSet;
+
+import com.sun.rowset.internal.Row;
+
+import source.Cell;
+import source.Fan;
+import source.GameEngine;
+import source.Person;
+import source.Player;
+
+import bozorg.common.GameObjectID;
+import bozorg.common.exceptions.BozorgExceptionBase;
+import bozorg.common.exceptions.CallingDeadPerson;
+import bozorg.common.exceptions.DirectionIsBlocked;
+import bozorg.common.exceptions.HasStonedBonus;
+import bozorg.common.exceptions.ImpossibleToAttack;
+import bozorg.common.exceptions.IncompleteOperation;
+import bozorg.common.exceptions.InvalidGOI;
+import bozorg.common.exceptions.InvalidInteger;
+import bozorg.common.exceptions.NoFanToThrow;
+import bozorg.common.exceptions.NoGiftToGet;
+import bozorg.common.exceptions.NoPersonToAttack;
+import javafx.util.Pair;
+
+public class Judge extends JudgeAbstract {
+	private GameEngine engine;
+
+	public Judge() {
+		engine = new GameEngine();
+	}
+
+	// map functions
+	/**
+	 * loads map for initializing
+	 */
+	public ArrayList<GameObjectID> loadMap(int[][] cellsType, int[][] wallsType, int[] players) {
+		return engine.loadMap(cellsType, wallsType, players);
+	}
+
+	public int getMapWidth() {
+		return engine.getMapWidth();
+	}
+
+	public int getMapHeight() {
+		return engine.getMapHeight();
+	}
+
+	public int getMapCellType(int col, int row) {
+		return engine.getMapCellType(col, row);
+	}
+
+	public int getMapCellType(int col, int row, GameObjectID id) {
+		Player player = (Player) Player.getPersonFromGOI(id);
+		return engine.getMapCellType(col, row, player);
+	}
+
+	public int getMapWallType(int col, int row) {
+		return engine.getMapWallType(col, row);
+	}
+
+	public int getMapWallType(int col, int row, GameObjectID id) {
+		Player player = (Player) Player.getPersonFromGOI(id);
+		return engine.getMapWallType(col, row, player);
+	}
+
+	public void setup() {
+		// TODO
+	}
+
+	// logic functions
+	public void movePlayer(GameObjectID id, int direction) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+
+		Player player = (Player) Player.getPersonFromGOI(id);
+		engine.movePlayer(player, direction);
+	}
+
+	// TODO
+	public void attack(GameObjectID id, int direction) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+
+		Player player = (Player) Player.getPersonFromGOI(id);
+
+		engine.attack(player, direction);
+	}
+
+	public GameObjectID throwFan(GameObjectID id) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+
+		Player player = (Player) Player.getPersonFromGOI(id);
+
+		Fan fan = engine.throwFan(player);
+
+		return fan.getGameObjectID();
+	}
+
+	public void getGift(GameObjectID id) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+		Player player = (Player) Player.getPersonFromGOI(id);
+		engine.getGift(player);
+	}
+
+	HashMap<String, Integer> allCells[] = new HashMap[4], allWalls[] = new HashMap[4];
+
+	{
+		for (int i = 0; i < 4; i++) {
+			allCells[i] = new HashMap<>();
+			allWalls[i] = new HashMap<>();
+		}
+	}
+
+	// AI functions. these functions will never be used in judge
+	public void AIByStudents(GameObjectID id) {
+		try {
+			int player = getInfo(id).get(NAME);
+
+			// update seen cells
+			updateCellsInVision(id, allCells[player], allWalls[player]);
+
+			// find direction and move
+			if (canBeAliveIfMove(id)) {
+				int direction = bfsForJJ(id, JudgeAbstract.JJ_CELL, allCells[player], allWalls[player]);
+				if (direction == -1)
+					direction = bfsForJJ(id, JudgeAbstract.DARK_CELL, allCells[player], allWalls[player]);
+				movePlayer(id, direction);
+			} else {
+				ArrayList<GameObjectID> playersInVision = getPlayersInVision(id);
+				for (GameObjectID tmp : playersInVision)
+					if (canKill(tmp, id)){
+						movePlayer(id, getRelavtiveLocation(id, tmp));
+						break;
+					}
+			}
+			
+			ArrayList<GameObjectID> playersInVision = getPlayersInVision(id);
+			for (GameObjectID tmp : playersInVision)
+				if (distance(id, tmp) <= 1){
+					attack(id, getRelavtiveLocation(tmp, id));
+				}
+
+			// get Gift
+			getGift(id);
+		} catch (Exception e) {
+
+		}
+	}
+	/**
+	 * relation location between id and tmp
+	 * id , tmp -> left
+	 * tmp , id -> right
+	 * @param id
+	 * @param tmp
+	 * @return
+	 */
+	private int getRelavtiveLocation(GameObjectID id, GameObjectID tmp){
+		try{
+			if (getInfo(id).get(COL) < getInfo(tmp).get(COL))
+				return JudgeAbstract.LEFT;
+			if (getInfo(id).get(COL) > getInfo(tmp).get(COL))
+				return JudgeAbstract.RIGHT;
+			
+			if (getInfo(id).get(ROW) < getInfo(tmp).get(ROW))
+				return JudgeAbstract.UP;
+			if (getInfo(id).get(ROW) > getInfo(tmp).get(ROW))
+				return JudgeAbstract.DOWN;
+			return JudgeAbstract.NONE;
+		}catch(Exception e){
+			System.out.println("exception in getRelativeLocation");
+			return JudgeAbstract.NONE;
+		}
+	}
+
+	private boolean canBeAliveIfMove(GameObjectID id) {
+		ArrayList<GameObjectID> playersInVision = getPlayersInVision(id);
+		for (GameObjectID tmp : playersInVision) {
+			if (canKill(tmp, id))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * returns true if tmp can kill id
+	 * 
+	 * @param tmp
+	 * @param id
+	 * @return
+	 */
+	private boolean canKill(GameObjectID tmp, GameObjectID id) {
+		if (distance(id, tmp) > 3) // id can't reach tmp
+			return false;
+		try {
+			int speedTmp = getInfo(tmp).get(SPEED), powerTmp = getInfo(tmp).get(POWER),
+					healthTmp = getInfo(tmp).get(HEALTH);
+			int speedID = getInfo(tmp).get(SPEED), powerID = getInfo(tmp).get(POWER),
+					healthID = getInfo(tmp).get(HEALTH);
+
+			while (true) {
+				healthID -= powerTmp * speedTmp;
+				healthTmp -= powerID * speedID;
+
+				if (healthTmp <= 0)
+					return false;
+				if (healthID <= 0)
+					return true;
+			}
+		} catch (Exception e) {
+			System.out.println("exception in canKill method");
+			return false;
+		}
+	}
+
+	private int distance(GameObjectID id, GameObjectID tmp) {
+		try {
+			return Math.abs(getInfo(id).get(ROW) - getInfo(tmp).get(ROW))
+					+ Math.abs(getInfo(id).get(COL) - getInfo(tmp).get(COL));
+		} catch (Exception e) {
+			System.out.println("exception in distance method");
+			return 0;
+		}
+	}
+
+	private void updateCellsInVision(GameObjectID id, HashMap<String, Integer> allCells,
+			HashMap<String, Integer> allWalls) {
+		try {
+			ArrayList<String> tmpArr = getVision(id);
+			for (String tmp : tmpArr) {
+				String[] arr = tmp.split(" ");
+				int row = Integer.parseInt(arr[0]), col = Integer.parseInt(arr[1]);
+				allCells.put(tmp, getMapCellType(col, row, id));
+				allWalls.put(tmp, getMapWallType(col, row, id));
+			}
+		} catch (Exception e) {
+
+		}
+	}
+
+	/**
+	 * will return the direction of move, target could be jjcell or darkCell may
+	 * return -1 if can't find target
+	 * 
+	 * @return
+	 */
+	private int bfsForJJ(GameObjectID id, int target, HashMap<String, Integer> allCells,
+			HashMap<String, Integer> allWalls) {
+		try {
+			String currentCell = getInfo(id).get(ROW) + " " + getInfo(id).get(COL);
+
+			HashMap<String, Integer> checkCells = new HashMap<>();
+			TreeSet<Pair<String, Integer>> cellsForBfsTree = new TreeSet<>();
+
+			checkCells.put(currentCell, 0);
+
+			String[] currentRowCol = currentCell.split(" ");
+			int row = Integer.parseInt(currentRowCol[0]), col = Integer.parseInt(currentRowCol[1]);
+			int wallType = getMapWallType(col, row, id);
+
+			if (row > 0)
+				if (wallType % 2 == 0) {
+					checkCells.put((row - 1) + " " + col, JudgeAbstract.UP);
+					cellsForBfsTree.add(new Pair<String, Integer>((row - 1) + " " + col, 1));
+				}
+
+			if (col > 0)
+				if ((wallType / 8) % 2 == 0) {
+					checkCells.put(row + " " + (col - 1), JudgeAbstract.LEFT);
+					cellsForBfsTree.add(new Pair<String, Integer>(row + " " + (col - 1), 1));
+				}
+
+			if (row < getMapHeight() - 1)
+				if ((wallType / 4) % 2 == 0) {
+					checkCells.put((row + 1) + " " + col, JudgeAbstract.DOWN);
+					cellsForBfsTree.add(new Pair<String, Integer>((row + 1) + " " + col, 1));
+				}
+			if (col < getMapWidth() - 1)
+				if ((wallType / 2) % 2 == 0) {
+					checkCells.put(row + " " + (col + 1), JudgeAbstract.RIGHT);
+					cellsForBfsTree.add(new Pair<String, Integer>(row + " " + (col + 1), 1));
+				}
+
+			while (!cellsForBfsTree.isEmpty()) {
+				int dist = cellsForBfsTree.first().getValue();
+				currentCell = cellsForBfsTree.first().getKey();
+				cellsForBfsTree.pollFirst();
+
+				currentRowCol = currentCell.split(" ");
+				row = Integer.parseInt(currentRowCol[0]);
+				col = Integer.parseInt(currentRowCol[1]);
+				// wallType = getMapWallType(col, row, id);
+				// if (getMapCellType(col, row, id) == target)
+				// return checkCells.get(currentCell);
+				// if (target == JudgeAbstract.JJ_CELL && getMapCellType(col,
+				// row, id) == JudgeAbstract.DARK_CELL)
+				// continue;
+				wallType = allWalls.get(currentCell);
+				if (allCells.get(currentCell) == target)
+					return checkCells.get(currentCell);
+				if (target == JudgeAbstract.JJ_CELL && allCells.get(currentCell) == JudgeAbstract.DARK_CELL)
+					continue;
+
+				if (row > 0)
+					if (wallType % 2 == 0)
+						if (checkCells.get((row - 1) + " " + col) == null) {
+							checkCells.put((row - 1) + " " + col, checkCells.get(currentCell));
+							cellsForBfsTree.add(new Pair<String, Integer>((row - 1) + " " + col, dist + 1));
+						}
+
+				if (col > 0)
+					if ((wallType / 8) % 2 == 0)
+						if (checkCells.get(row + " " + (col - 1)) == null) {
+							checkCells.put(row + " " + (col - 1), checkCells.get(currentCell));
+							cellsForBfsTree.add(new Pair<String, Integer>(row + " " + (col - 1), dist + 1));
+						}
+
+				if (row < getMapHeight() - 1)
+					if ((wallType / 4) % 2 == 0)
+						if (checkCells.get((row + 1) + " " + col) == null) {
+							checkCells.put((row + 1) + " " + col, checkCells.get(currentCell));
+							cellsForBfsTree.add(new Pair<String, Integer>((row + 1) + " " + col, dist + 1));
+						}
+				if (col < getMapWidth() - 1)
+					if ((wallType / 2) % 2 == 0)
+						if (checkCells.get(row + " " + (col + 1)) == null) {
+							checkCells.put(row + " " + (col + 1), checkCells.get(currentCell));
+							cellsForBfsTree.add(new Pair<String, Integer>(row + " " + (col + 1), dist + 1));
+						}
+
+			}
+			return -1;
+		} catch (Exception e) {
+			return -1;
+		}
+	}
+
+	// get info
+	public ArrayList<GameObjectID> getEveryThing() {// will never be used in
+													// judge
+		// TODO
+		return null;
+	}
+
+	public ArrayList<String> getVision(GameObjectID id) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+
+		Player player = (Player) Player.getPersonFromGOI(id);
+		if (!player.isAlive())
+			throw new CallingDeadPerson();
+
+		ArrayList<Cell> cells = player.getVisionArrayCells();
+		ArrayList<String> ret = new ArrayList<String>();
+		for (Cell tmp : cells)
+			ret.add(tmp.getRow() + "," + tmp.getCol());
+		return ret;
+	}
+
+	// TODO : dead person ??
+	public ArrayList<GameObjectID> getPlayersInVision(GameObjectID id) {
+		Player player = (Player) Player.getPersonFromGOI(id);
+		ArrayList<GameObjectID> ret = new ArrayList<GameObjectID>();
+		ArrayList<Player> playersInVision = player.getPlayersInVision();
+		for (Player tmp : playersInVision)
+			ret.add(tmp.getGameObjectID());
+		return ret;
+	}
+
+	public ArrayList<GameObjectID> getFans(GameObjectID id) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+		Player player = (Player) Player.getPersonFromGOI(id);
+		if (!player.isAlive())
+			throw new CallingDeadPerson();
+		ArrayList<Fan> allFans = player.getFans();
+		ArrayList<GameObjectID> ret = new ArrayList<GameObjectID>();
+		for (Fan tmp : allFans)
+			ret.add(tmp.getGameObjectID());
+		return ret;
+	}
+
+	public HashMap<String, Integer> getInfo(GameObjectID id) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+		return Person.getPersonFromGOI(id).getInfo();
+	}
+
+	// Controller functions
+	public void next50milis() {
+		engine.next50milis();
+	}
+
+	public void startTimer() {// will never be used in judge
+		engine.startTimer();
+		// TODO
+	}
+
+	public void pauseTimer() {
+		engine.pauseTimer();
+		// TODO
+	}
+
+	public float getTime() {
+		return engine.getTime();
+	}
+
+	static public float getStaticTime() {
+		return GameEngine.getStaticTime();
+	}
+
+	// Judge cheat functions
+	public void updateInfo(GameObjectID id, String infoKey, Integer infoValue) throws BozorgExceptionBase {
+		if (!Person.isValidGOI(id))
+			throw new InvalidGOI();
+		Person person = Person.getPersonFromGOI(id);
+		if (person.getClass().equals(Player.getAllPlayers().get(0).getClass())) {
+			Player player = (Player) person;
+			if (infoKey == JudgeAbstract.ROW)
+				player.setCell(Cell.getCell(infoValue, player.getCell().getCol()));
+			if (infoKey == JudgeAbstract.COL)
+				player.setCell(Cell.getCell(player.getCell().getRow(), infoValue));
+			if (infoKey == JudgeAbstract.SPEED)
+				player.setSpeed(infoValue);
+			if (infoKey == JudgeAbstract.NAME)
+				player.setName(infoValue);
+			if (infoKey == JudgeAbstract.IS_WINNER) {
+				if (infoValue == JudgeAbstract.WINS)
+					Player.setWinner(player);
+				if (infoValue == JudgeAbstract.LOST)
+					player.setAlive(false);
+				if (infoValue == JudgeAbstract.NOT_FINISHED) {
+					player.setAlive(true);
+					Player.setWinner(null);
+				}
+			}
+			if (infoKey == JudgeAbstract.POWER)
+				player.setPower(infoValue);
+			if (infoKey == JudgeAbstract.VISION)
+				player.setVision(infoValue);
+			if (infoKey == JudgeAbstract.FANS)
+				player.addFans(infoValue);
+			if (infoKey == JudgeAbstract.IS_ALIVE)
+				player.setAlive(infoValue == JudgeAbstract.ALIVE ? true : false);
+			if (infoKey == JudgeAbstract.HEALTH)
+				player.setHealth(infoValue);
+		}
+		if (person.getClass().equals(Fan.getAllFans().get(0).getClass())) {
+			Fan fan = (Fan) person;
+			if (infoKey == JudgeAbstract.ROW)
+				fan.setCell(Cell.getCell(infoValue, fan.getCell().getCol()));
+			if (infoKey == JudgeAbstract.COL)
+				fan.setCell(Cell.getCell(fan.getCell().getRow(), infoValue));
+			if (infoKey == JudgeAbstract.OWNER)
+				fan.setOwner(Player.getPlayerFromNumber(infoValue));
+			if (infoKey == JudgeAbstract.IS_ALIVE)
+				fan.setAlive(infoValue == JudgeAbstract.ALIVE ? true : false);
+		}
+	}
+
+	// AI functions:
+	HashMap<Cell, Boolean>[] goneCells = new HashMap[4];
+
+	private void dfs(Cell cell, Player player) {
+		goneCells[player.getName()].put(cell, true);
+
+		for (int i = 0; i < 4; i++) {
+			Cell cell1 = Cell.getNextCellFromDir(cell, i); // get cell in
+															// direction of i
+			if (cell1 != null)
+				if (goneCells[player.getName()].get(cell1) == null)
+					dfs(cell1, player);
+		}
+	}
+}

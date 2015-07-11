@@ -2,7 +2,11 @@ package bozorg.judge;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.TreeSet;
+
+import com.sun.rowset.internal.Row;
 
 import source.Cell;
 import source.Fan;
@@ -22,11 +26,12 @@ import bozorg.common.exceptions.InvalidInteger;
 import bozorg.common.exceptions.NoFanToThrow;
 import bozorg.common.exceptions.NoGiftToGet;
 import bozorg.common.exceptions.NoPersonToAttack;
+import javafx.util.Pair;
 
 public class Judge extends JudgeAbstract {
 	private GameEngine engine;
-	
-	public Judge(){
+
+	public Judge() {
 		engine = new GameEngine();
 	}
 
@@ -34,8 +39,7 @@ public class Judge extends JudgeAbstract {
 	/**
 	 * loads map for initializing
 	 */
-	public ArrayList<GameObjectID> loadMap(int[][] cellsType,
-			int[][] wallsType, int[] players) {
+	public ArrayList<GameObjectID> loadMap(int[][] cellsType, int[][] wallsType, int[] players) {
 		return engine.loadMap(cellsType, wallsType, players);
 	}
 
@@ -70,8 +74,7 @@ public class Judge extends JudgeAbstract {
 	}
 
 	// logic functions
-	public void movePlayer(GameObjectID id, int direction)
-			throws BozorgExceptionBase {
+	public void movePlayer(GameObjectID id, int direction) throws BozorgExceptionBase {
 		if (!Person.isValidGOI(id))
 			throw new InvalidGOI();
 
@@ -80,13 +83,12 @@ public class Judge extends JudgeAbstract {
 	}
 
 	// TODO
-	public void attack(GameObjectID id, int direction)
-			throws BozorgExceptionBase {
+	public void attack(GameObjectID id, int direction) throws BozorgExceptionBase {
 		if (!Person.isValidGOI(id))
 			throw new InvalidGOI();
 
 		Player player = (Player) Player.getPersonFromGOI(id);
-		
+
 		engine.attack(player, direction);
 	}
 
@@ -95,9 +97,9 @@ public class Judge extends JudgeAbstract {
 			throw new InvalidGOI();
 
 		Player player = (Player) Player.getPersonFromGOI(id);
-		
+
 		Fan fan = engine.throwFan(player);
-		
+
 		return fan.getGameObjectID();
 	}
 
@@ -108,42 +110,267 @@ public class Judge extends JudgeAbstract {
 		engine.getGift(player);
 	}
 
+	HashMap<String, Integer> allCells[] = new HashMap[4], allWalls[] = new HashMap[4];
+
+	{
+		for (int i = 0; i < 4; i++) {
+			allCells[i] = new HashMap<>();
+			allWalls[i] = new HashMap<>();
+		}
+	}
+
 	// AI functions. these functions will never be used in judge
-	public void AIByStudents(GameObjectID player) {
+	public void AIByStudents(GameObjectID id) {
 		try {
-			ArrayList<String> cells = getVision(player);
-			int[] rows = new int[cells.size()];
-			int[] cols = new int[cells.size()];
-			int currentRow = 0, currentCol = 0;
-			for (int i = 0; i < cells.size(); i++) {
-				String[] tmp = cells.get(i).split(",");
-				rows[i] = Integer.parseInt(tmp[0]);
-				cols[i] = Integer.parseInt(tmp[1]);
-				currentRow += rows[i];
-				currentCol += cols[i];
+			int player = getInfo(id).get(NAME);
 
+			// update seen cells
+			updateCellsInVisionForAI(id, allCells[player], allWalls[player]);
+
+			// find direction and move
+			if (canBeAliveIfMove(id)) {
+				int direction = bfsForJJ(id, JudgeAbstract.JJ_CELL, allCells[player], allWalls[player]);
+				if (direction == -1)
+					direction = bfsForJJ(id, JudgeAbstract.DARK_CELL, allCells[player], allWalls[player]);
+				System.out.println(direction);
+				movePlayer(id, direction);
+			} else {
+				ArrayList<GameObjectID> playersInVision = getPlayersInVision(id);
+				for (GameObjectID tmp : playersInVision)
+					if (canKill(tmp, id)){
+						System.out.println(getRelavtiveLocation(id, tmp));
+						movePlayer(id, getRelavtiveLocation(id, tmp));
+						break;
+					}
 			}
-			currentRow = currentRow / cells.size();
-			currentCol = currentCol / cells.size();
-			for (int i = 0; i < cells.size(); i++) {
-				if (getMapCellType(cols[i], rows[i], player) == JudgeAbstract.JJ_CELL) {
-					if (currentCol > cols[i])
-						movePlayer(player, JudgeAbstract.LEFT);
-					else if (currentCol < cols[i])
-						movePlayer(player, JudgeAbstract.RIGHT);
-					else if (currentRow > rows[i])
-						movePlayer(player, JudgeAbstract.UP);
-					else if (currentRow < rows[i])
-						movePlayer(player, JudgeAbstract.DOWN);
-					return;
+			
+			ArrayList<GameObjectID> playersInVision = getPlayersInVision(id);
+			for (GameObjectID tmp : playersInVision)
+				if (distance(id, tmp) <= 1){
+					attack(id, getRelavtiveLocation(tmp, id));
 				}
-			}
-			movePlayer(player, new Random().nextInt() % 4);
 
+			// get Gift
+			getGift(id);
 		} catch (Exception e) {
 
 		}
+	}
+	/**
+	 * relation location between id and tmp
+	 * id , tmp -> left
+	 * tmp , id -> right
+	 * 
+	 * tested, works fine
+	 * @param id
+	 * @param tmp
+	 * @return
+	 */
+	public int getRelavtiveLocation(GameObjectID id, GameObjectID tmp){
+		try{
+			if (getInfo(id).get(COL) < getInfo(tmp).get(COL))
+				return JudgeAbstract.LEFT;
+			if (getInfo(id).get(COL) > getInfo(tmp).get(COL))
+				return JudgeAbstract.RIGHT;
+			
+			if (getInfo(id).get(ROW) < getInfo(tmp).get(ROW))
+				return JudgeAbstract.UP;
+			if (getInfo(id).get(ROW) > getInfo(tmp).get(ROW))
+				return JudgeAbstract.DOWN;
+			return JudgeAbstract.NONE;
+		}catch(Exception e){
+			System.out.println("exception in getRelativeLocation");
+			return JudgeAbstract.NONE;
+		}
+	}
 
+	/**
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public boolean canBeAliveIfMove(GameObjectID id) {
+		ArrayList<GameObjectID> playersInVision = getPlayersInVision(id);
+		for (GameObjectID tmp : playersInVision) {
+			if (canKill(tmp, id))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * tested, works fine
+	 * returns true if tmp can kill id
+	 * 
+	 * @param tmp
+	 * @param id
+	 * @return
+	 */
+	public boolean canKill(GameObjectID tmp, GameObjectID id) {
+		if (distance(id, tmp) >= 3) // id can't reach tmp
+			return false;
+		try {
+			int speedTmp = getInfo(tmp).get(SPEED);
+			int powerTmp = getInfo(tmp).get(POWER);
+			int healthTmp = getInfo(tmp).get(HEALTH);
+			int speedID = getInfo(id).get(SPEED);
+			int powerID = getInfo(id).get(POWER);
+			int	healthID = getInfo(id).get(HEALTH);
+			
+			while (true) {
+				healthID -= powerTmp * speedTmp;
+				healthTmp -= powerID * speedID;
+
+				if (healthTmp <= 0)
+					return false;
+				if (healthID <= 0)
+					return true;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			System.out.println("exception in canKill method");
+			return false;
+		}
+	}
+
+	/**
+	 * tested, works fine
+	 * @param id
+	 * @param tmp
+	 * @return
+	 */
+	public int distance(GameObjectID id, GameObjectID tmp) {
+		try {
+			return Math.abs(getInfo(id).get(ROW) - getInfo(tmp).get(ROW))
+					+ Math.abs(getInfo(id).get(COL) - getInfo(tmp).get(COL));
+		} catch (Exception e) {
+			System.out.println("exception in distance method");
+			return 0;
+		}
+	}
+
+	/**
+	 * tested, works fine
+	 * @param id
+	 * @param allCells
+	 * @param allWalls
+	 */
+	public void updateCellsInVisionForAI(GameObjectID id, HashMap<String, Integer> allCells,
+			HashMap<String, Integer> allWalls) {
+		try {
+			ArrayList<String> tmpArr = getVision(id);
+			for (String tmp : tmpArr) {
+				String[] arr = tmp.split(",");
+				int row = Integer.parseInt(arr[0]), col = Integer.parseInt(arr[1]);
+				allCells.put(tmp, getMapCellType(col, row, id));
+				allWalls.put(tmp, getMapWallType(col, row, id));
+			}
+		} catch (Exception e) {
+			System.out.println("exception 1");
+		}
+	}
+
+	/**
+	 * tested, works fine
+	 * will return the direction of move, target could be jjcell or darkCell may
+	 * return -1 if can't find target
+	 * 
+	 * @return
+	 */
+	public int bfsForJJ(GameObjectID id, int target, HashMap<String, Integer> allCells,
+			HashMap<String, Integer> allWalls) {
+		try {
+			String currentCell = getInfo(id).get(ROW) + "," + getInfo(id).get(COL);
+			HashMap<String, Integer> checkCells = new HashMap<>();
+			TreeSet<ComparableString> cellsForBfsTree = new TreeSet<>();
+
+			checkCells.put(currentCell, JudgeAbstract.NONE);
+
+			String[] currentRowCol = currentCell.split(",");
+			int row = Integer.parseInt(currentRowCol[0]), col = Integer.parseInt(currentRowCol[1]);
+			int wallType = getMapWallType(col, row, id);
+			if (row > 0)
+				if (wallType % 2 == 0) {
+					checkCells.put((row - 1) + "," + col, JudgeAbstract.UP);
+					cellsForBfsTree.add(new ComparableString((row - 1) + "," + col, 1));
+				}
+			if (col < getMapWidth() - 1)
+				if ((wallType / 2) % 2 == 0) {
+					checkCells.put(row + "," + (col + 1), JudgeAbstract.RIGHT);
+					cellsForBfsTree.add(new ComparableString(row + "," + (col + 1), 1));
+				}
+			if (row < getMapHeight() - 1)
+				if ((wallType / 4) % 2 == 0) {
+					checkCells.put((row + 1) + "," + col, JudgeAbstract.DOWN);
+					cellsForBfsTree.add(new ComparableString((row + 1) + "," + col, 1));
+				}
+			if (col > 0)
+				if ((wallType / 8) % 2 == 0) {
+					checkCells.put(row + "," + (col - 1), JudgeAbstract.LEFT);
+					cellsForBfsTree.add(new ComparableString(row + "," + (col - 1), 1));
+				}
+			
+			while (!cellsForBfsTree.isEmpty()) {
+				int dist = cellsForBfsTree.first().getValue();
+				currentCell = cellsForBfsTree.first().getKey();
+				cellsForBfsTree.pollFirst();
+//				System.out.println(cellsForBfsTree.size());
+//				System.out.println("before is : " + currentCell + " " + dist + " " + checkCells.get(currentCell));
+//				System.out.println("now is : " + cellsForBfsTree.first().getKey() + " " + cellsForBfsTree.first().getValue());
+
+				currentRowCol = currentCell.split(",");
+				row = Integer.parseInt(currentRowCol[0]);
+				col = Integer.parseInt(currentRowCol[1]);
+				// wallType = getMapWallType(col, row, id);
+				// if (getMapCellType(col, row, id) == target)
+				// return checkCells.get(currentCell);
+				// if (target == JudgeAbstract.JJ_CELL && getMapCellType(col,
+				// row, id) == JudgeAbstract.DARK_CELL)
+				// continue;
+				
+				if (allCells.get(currentCell) == null && target == JudgeAbstract.DARK_CELL)
+					return checkCells.get(currentCell);
+					
+				wallType = allWalls.get(currentCell);
+				if (allCells.get(currentCell) == target)
+					return checkCells.get(currentCell);
+				if (target == JudgeAbstract.JJ_CELL && allCells.get(currentCell) == JudgeAbstract.DARK_CELL)
+					continue;
+
+				if (row > 0)
+					if (wallType % 2 == 0)
+						if (checkCells.get((row - 1) + "," + col) == null) {
+							checkCells.put((row - 1) + "," + col, checkCells.get(currentCell));
+							cellsForBfsTree.add(new ComparableString((row - 1) + "," + col, dist + 1));
+						}
+
+				if (col > 0)
+					if ((wallType / 8) % 2 == 0)
+						if (checkCells.get(row + "," + (col - 1)) == null) {
+							checkCells.put(row + "," + (col - 1), checkCells.get(currentCell));
+							cellsForBfsTree.add(new ComparableString(row + "," + (col - 1), dist + 1));
+						}
+
+				if (row < getMapHeight() - 1)
+					if ((wallType / 4) % 2 == 0)
+						if (checkCells.get((row + 1) + "," + col) == null) {
+							checkCells.put((row + 1) + "," + col, checkCells.get(currentCell));
+							cellsForBfsTree.add(new ComparableString((row + 1) + "," + col, dist + 1));
+						}
+				if (col < getMapWidth() - 1)
+					if ((wallType / 2) % 2 == 0)
+						if (checkCells.get(row + "," + (col + 1)) == null) {
+							checkCells.put(row + "," + (col + 1), checkCells.get(currentCell));
+							cellsForBfsTree.add(new ComparableString(row + "," + (col + 1), dist + 1));
+						}
+
+			}
+			return (int)Math.random();
+		} catch (Exception e) {
+			System.out.println(e);
+			System.out.println("exception in bfs");
+			return (int)Math.random();
+		}
 	}
 
 	// get info
@@ -153,8 +380,7 @@ public class Judge extends JudgeAbstract {
 		return null;
 	}
 
-	public ArrayList<String> getVision(GameObjectID id)
-			throws BozorgExceptionBase {
+	public ArrayList<String> getVision(GameObjectID id) throws BozorgExceptionBase {
 		if (!Person.isValidGOI(id))
 			throw new InvalidGOI();
 
@@ -168,8 +394,8 @@ public class Judge extends JudgeAbstract {
 			ret.add(tmp.getRow() + "," + tmp.getCol());
 		return ret;
 	}
-	
-	//TODO : dead person ??
+
+	// TODO : dead person ??
 	public ArrayList<GameObjectID> getPlayersInVision(GameObjectID id) {
 		Player player = (Player) Player.getPersonFromGOI(id);
 		ArrayList<GameObjectID> ret = new ArrayList<GameObjectID>();
@@ -179,8 +405,7 @@ public class Judge extends JudgeAbstract {
 		return ret;
 	}
 
-	public ArrayList<GameObjectID> getFans(GameObjectID id)
-			throws BozorgExceptionBase {
+	public ArrayList<GameObjectID> getFans(GameObjectID id) throws BozorgExceptionBase {
 		if (!Person.isValidGOI(id))
 			throw new InvalidGOI();
 		Player player = (Player) Player.getPersonFromGOI(id);
@@ -193,8 +418,7 @@ public class Judge extends JudgeAbstract {
 		return ret;
 	}
 
-	public HashMap<String, Integer> getInfo(GameObjectID id)
-			throws BozorgExceptionBase {
+	public HashMap<String, Integer> getInfo(GameObjectID id) throws BozorgExceptionBase {
 		if (!Person.isValidGOI(id))
 			throw new InvalidGOI();
 		return Person.getPersonFromGOI(id).getInfo();
@@ -224,19 +448,16 @@ public class Judge extends JudgeAbstract {
 	}
 
 	// Judge cheat functions
-	public void updateInfo(GameObjectID id, String infoKey, Integer infoValue)
-			throws BozorgExceptionBase {
+	public void updateInfo(GameObjectID id, String infoKey, Integer infoValue) throws BozorgExceptionBase {
 		if (!Person.isValidGOI(id))
 			throw new InvalidGOI();
 		Person person = Person.getPersonFromGOI(id);
 		if (person.getClass().equals(Player.getAllPlayers().get(0).getClass())) {
 			Player player = (Player) person;
 			if (infoKey == JudgeAbstract.ROW)
-				player.setCell(Cell.getCell(infoValue, player.getCell()
-						.getCol()));
+				player.setCell(Cell.getCell(infoValue, player.getCell().getCol()));
 			if (infoKey == JudgeAbstract.COL)
-				player.setCell(Cell.getCell(player.getCell().getRow(),
-						infoValue));
+				player.setCell(Cell.getCell(player.getCell().getRow(), infoValue));
 			if (infoKey == JudgeAbstract.SPEED)
 				player.setSpeed(infoValue);
 			if (infoKey == JudgeAbstract.NAME)
@@ -275,4 +496,46 @@ public class Judge extends JudgeAbstract {
 		}
 	}
 
+	// AI functions:
+	HashMap<Cell, Boolean>[] goneCells = new HashMap[4];
+
+	private void dfs(Cell cell, Player player) {
+		goneCells[player.getName()].put(cell, true);
+
+		for (int i = 0; i < 4; i++) {
+			Cell cell1 = Cell.getNextCellFromDir(cell, i); // get cell in
+															// direction of i
+			if (cell1 != null)
+				if (goneCells[player.getName()].get(cell1) == null)
+					dfs(cell1, player);
+		}
+	}
+}
+
+class ComparableString implements Comparable<ComparableString>{
+	String key;
+	int value;
+	
+	public ComparableString(String key, int value) {
+		this.key = key;
+		this.value = value;
+	}
+	@Override
+	public int compareTo(ComparableString o) {
+		if (this.value > o.value)
+			return 1;
+		if (this.value < o.value)
+			return -1;
+		if (this.key == o.key)
+			return 0;
+		return 1;
+	}
+	
+	public int getValue(){
+		return value;
+	}
+	
+	public String getKey(){
+		return key;
+	}
 }
